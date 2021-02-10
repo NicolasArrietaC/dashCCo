@@ -1,0 +1,13 @@
+name: dashCCo
+title: dashCCo
+username:
+account: sigmap-unisalle
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2594944
+bundleId: 4202686
+url: https://contratacion-covid19.shinyapps.io/dashCCo/
+when: 1612905174.8254
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .RData|resumen_dataset.html|resumen_dataset.Rmd|Carga de datos/descarga_dataset.R|Figuras_muestras/IHH_area.png|Figuras_muestras/IHH_circul.png|Figuras_muestras/IHH_deptp.png|Figuras_muestras/IHH_santander.png|Indicadores/Definici?n de Indicadores.docx|Indicadores/generacion_indicadores_fam.R|Indicadores/generacion_indicadores_reg.R|Datasets_complementos|funciones_graficas|Limpieza de datos|Presentacion taller R
