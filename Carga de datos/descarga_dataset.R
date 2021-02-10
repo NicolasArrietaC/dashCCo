@@ -11,8 +11,8 @@ library(tidyverse)
 extraccion_datos <- function(enlace, lim = 20000){
   
   # Credenciales
-  correo <- "narrieta01@unisalle.edu.co"
-  contrasenna <- "Nikelaos0914"
+  correo <- "**********@unisalle.edu.co"
+  contrasenna <- "***********"
   # Ajuste del limite en la consulta para no descargar
   # conjuntos muy grandes
   enlace <- paste0(enlace,
@@ -80,8 +80,7 @@ enlace <- paste0(
 contratos_SI <- extraccion_datos(enlace = enlace, lim = 50000)
 
 # 3.3. Escritura del conjunto de datos ----
-direccion_comp <- paste0('C:/Users/nico2/Proyectos/contratacion_publica',
-                         '/dashCCo/Datasets_complementos/')
+direccion_comp <- paste0('dashCCo/Datasets_complementos/')
 
 contratos_SI <- contratos_SI %>% unique()
 

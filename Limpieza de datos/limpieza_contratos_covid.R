@@ -11,10 +11,9 @@ library(fuzzyjoin)
 # 2. Carga de conjunto de datos ----
 # SECOP I
 
-direccion <- 'C:/Users/nico2/Proyectos/contratacion_publica/dashCCo/Datasets/'
+direccion <- 'dashCCo/Datasets/'
 
-direccion_comp <- paste0('C:/Users/nico2/Proyectos/contratacion_publica',
-                         '/dashCCo/Datasets_complementos/')
+direccion_comp <- 'dashCCo/Datasets_complementos/'
 
 contratos_SI <- read_csv(file = paste0(direccion_comp, 
                                        "contratos_covid19_SI.csv"), 
