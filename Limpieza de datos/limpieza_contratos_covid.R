@@ -3,17 +3,17 @@
 ##  Fecha de creación: 15/07/2020
 
 # 1. Librerias ----
-library(tidyverse)
-library(stringdist)
-library(lubridate)
-library(fuzzyjoin)
+sapply(
+  c('tidyverse', 'lubridate', 'stringdist', 'fuzzyjoin'), 
+  library, character.only = T
+)
 
 # 2. Carga de conjunto de datos ----
 # SECOP I
 
 direccion <- 'dashCCo/Datasets/'
 
-direccion_comp <- 'dashCCo/Datasets_complementos/'
+direccion_comp <- paste0('dashCCo/Datasets_complementos/')
 
 contratos_SI <- read_csv(file = paste0(direccion_comp, 
                                        "contratos_covid19_SI.csv"), 
@@ -82,7 +82,7 @@ contratos_SI <- contratos_SI %>%
 
 # Remover letras
 palabras <- c("DEL MUNICIPIO", "MUNICIPIO DE ", "MUNICIPIO",
-              "DISTRITO TURÍSTICO CULTURAL E HISTÓRICO",
+              "DISTRITO TURÍSTICO CULTURAL E HIST?RICO",
               "DISTRITO ESPECIAL  INDUSTRIAL Y PORTUARIO")
 
 for (i in palabras) {
@@ -1140,7 +1140,8 @@ uids <- c("20-13-10638419-9780455", "20-12-10800790-9936496",
           "20-12-10763177-9890039", "20-12-10842692-9978787", 
           "20-4-10848593-9984820", "CO1.REQ.1241024",
           "CO1.REQ.1278446", "CO1.REQ.1278446", "CO1.REQ.1252914",
-          "20-12-10739009-9888535", "CO1.REQ.1224992", "CO1.REQ.1615047"
+          "20-12-10739009-9888535", "CO1.REQ.1224992", "CO1.REQ.1615047",
+          '21-4-11479484-10619711'
 )
 
 valor_est <- c(17966000, 57310400, 
@@ -1149,7 +1150,8 @@ valor_est <- c(17966000, 57310400,
                0, 245174195,
                215905000, 324062500,
                3504919, 884000,
-               1449420, 28528587
+               1449420, 28528587,
+               251810788
 )
 
 valor_ini <- c(17966000, 57310400, 
@@ -1158,7 +1160,8 @@ valor_ini <- c(17966000, 57310400,
                0, 245174195,
                215905000, 324062500,
                3504919, 884000,
-               1449420, 28528587
+               1449420, 28528587,
+               251810788
 )
 
 valor_adi <- c(0, 0, 
@@ -1167,7 +1170,8 @@ valor_adi <- c(0, 0,
                0, 0,
                0, 0,
                0, 0,
-               0, 0
+               0, 0,
+               0
 )
 
 for (i in uids) {

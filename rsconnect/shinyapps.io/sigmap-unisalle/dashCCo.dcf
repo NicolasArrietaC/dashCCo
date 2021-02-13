@@ -5,9 +5,9 @@ account: sigmap-unisalle
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2594944
-bundleId: 4202686
+bundleId: 4217082
 url: https://contratacion-covid19.shinyapps.io/dashCCo/
-when: 1612905174.8254
+when: 1613178575.25384
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: .RData|resumen_dataset.html|resumen_dataset.Rmd|Carga de datos/descarga_dataset.R|Figuras_muestras/IHH_area.png|Figuras_muestras/IHH_circul.png|Figuras_muestras/IHH_deptp.png|Figuras_muestras/IHH_santander.png|Indicadores/Definici?n de Indicadores.docx|Indicadores/generacion_indicadores_fam.R|Indicadores/generacion_indicadores_reg.R|Datasets_complementos|funciones_graficas|Limpieza de datos|Presentacion taller R
+ignoredFiles: .RData|.RDataTmp|Carga de datos/descarga_dataset.R|Indicadores/generacion_indicadores_fam.R|Indicadores/generacion_indicadores_reg.R|Limpieza de datos/limpieza_contratos_covid.R|Limpieza de datos/contratos/21-4-11479484-10619711.pdf|Datasets_complementos

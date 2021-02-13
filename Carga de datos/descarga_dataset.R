@@ -3,16 +3,17 @@
 ##  Fecha: 15/07/2020
 
 # 1. Librerias ----
-# install.packages("RSocrata")
-library(RSocrata)
-library(tidyverse)
+sapply(
+  c('RSocrata', 'tidyverse'), 
+  library, character.only = T
+)
 
 # 2. Funcion de extraccion de datos ----
 extraccion_datos <- function(enlace, lim = 20000){
   
   # Credenciales
-  correo <- "**********@unisalle.edu.co"
-  contrasenna <- "***********"
+  correo <- "****"
+  contrasenna <- "****"
   # Ajuste del limite en la consulta para no descargar
   # conjuntos muy grandes
   enlace <- paste0(enlace,
@@ -73,14 +74,13 @@ enlace <- paste0(
   " OR UPPER(", col, ") like '%25CONTINGENCIA%25'",
   " OR UPPER(", col, ") like '%25CUARENTENA%25'",
   " OR UPPER(", col, ") like '%25CORONAVIRUS%25'",
-  " OR UPPER(", col, ") like '%25COVID%25')",
-  "&anno_cargue_secop=2020")
+  " OR UPPER(", col, ") like '%25COVID%25')")
 
 # 3.2. Llamar a la funcion ----
-contratos_SI <- extraccion_datos(enlace = enlace, lim = 50000)
+contratos_SI <- extraccion_datos(enlace = enlace, lim = 60000)
 
 # 3.3. Escritura del conjunto de datos ----
-direccion_comp <- paste0('dashCCo/Datasets_complementos/')
+direccion_comp <- paste0('/dashCCo/Datasets_complementos/')
 
 contratos_SI <- contratos_SI %>% unique()
 
@@ -131,4 +131,3 @@ contratos_SII <- contratos_SII %>% unique()
 
 write_csv(x = contratos_SII, 
           path = paste0(direccion_comp, "contratos_covid19_SII.csv"))
-
