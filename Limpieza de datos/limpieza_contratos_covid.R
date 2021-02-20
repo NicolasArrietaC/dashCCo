@@ -382,35 +382,39 @@ contratos <- contratos %>% filter(!is.na(valor_total))
 
 ## 4.4. Ajuste de valores en tipo de proceso ----
 contratos <- contratos %>% 
-  mutate(tipo_proceso = case_when(
-    str_detect(str_to_lower(tipo_proceso),
-        pattern = "contratación directa")~ "Contratación Directa",
-    str_detect(str_to_lower(tipo_proceso),
-        pattern = "régimen especial")~ "Régimen Especial",
-    str_detect(str_to_lower(tipo_proceso), 
-        pattern = "mínima cuantía")~ "Mínima Cuantía",
-    str_detect(str_to_lower(tipo_proceso), 
-        pattern = "selección abreviada de menor cuantía")~ 
-      "Selección Abreviada Menor Cuantía",
-    str_detect(str_to_lower(tipo_proceso), 
-        pattern = "solicitud de información")~ 
-      "Solicitud información a Proveedores",
-    str_detect(str_to_lower(tipo_proceso), 
-        pattern = "contratos y convenios con más de dos partes")~ 
-      "Contratos con más de dos partes",
-    str_detect(str_to_lower(tipo_proceso), 
-        pattern = "subasta inversa")~ "Subasta Inversa",
-    str_detect(str_to_lower(tipo_proceso), 
-        pattern = "licitación pública")~ "Licitación Pública",
-    str_detect(str_to_lower(tipo_proceso), 
-        pattern = "concurso de méri")~ "Concurso de Méritos Abierto",
-    TRUE~ tipo_proceso))
+  mutate(tipo_proceso = str_to_lower(tipo_proceso),
+    tipo_proceso = case_when(
+    str_detect(tipo_proceso, 
+               pattern = "licitación pública|obra pública|subasta") ~ 
+      "Licitación pública",
+    str_detect(tipo_proceso, 
+               pattern = "selección abreviada de menor cuantía") ~ 
+      "Selección abreviada",
+    str_detect(tipo_proceso, 
+               pattern = "concurso de méri") ~ "Concurso de méritos",
+    str_detect(tipo_proceso, pattern = "contratación directa|dos partes") ~
+      "Contratación directa",
+    str_detect(tipo_proceso, pattern = "mínima cuantía") ~ "Mínima cuantía",
+    str_detect(tipo_proceso, pattern = "público privada") ~ 
+      "Asociación público privada",
+    str_detect(tipo_proceso, pattern = "régimen especial") | 
+      str_detect(regimen_contratacion, pattern = "Régimen Especial") ~ 
+      "Régimen especial",
+    TRUE ~ tipo_proceso))
 
 ## 4.5. Ajuste de valores en tipo de contrato ----
 contratos <- contratos %>% 
   mutate(tipo_contrato = case_when(
     str_detect(str_to_lower(tipo_contrato),
-               pattern = "otro")~ "Otros Servicios",
+               pattern = "otro|aprovisionamiento|servicios")~ 
+      "Prestación de servicios",
+    str_detect(str_to_lower(tipo_contrato),
+               pattern = "interventoría")~ "Consultoría",
+    str_detect(str_to_lower(tipo_contrato),
+               pattern = "fiducia")~ "Encargos fiduciarios",
+    str_detect(str_to_lower(tipo_contrato),
+               pattern = "092")~ 
+      "Contrato con entidades privados sin ánimo de lucro",
     str_detect(str_to_lower(tipo_contrato),
                pattern = "suministro")~ "Suministros",
     str_detect(str_to_lower(tipo_contrato),
