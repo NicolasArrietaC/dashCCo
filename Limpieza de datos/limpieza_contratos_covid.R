@@ -4,16 +4,18 @@
 
 # 1. Librerias ----
 sapply(
-  c('tidyverse', 'lubridate', 'stringdist', 'fuzzyjoin'), 
+  c('dplyr', 'readr', 'lubridate', 'stringr',
+    'stringdist', 'fuzzyjoin'), 
   library, character.only = T
 )
 
 # 2. Carga de conjunto de datos ----
 # SECOP I
 
-direccion <- 'dashCCo/Datasets/'
+direccion <- 'C:/Users/nico2/Analytica Projects/contratacion_publica/dashCCo/Datasets/'
 
-direccion_comp <- paste0('dashCCo/Datasets_complementos/')
+direccion_comp <- paste0('C:/Users/nico2/Analytica Projects/',
+                         'contratacion_publica/dashCCo/Datasets_complementos/')
 
 contratos_SI <- read_csv(file = paste0(direccion_comp, 
                                        "contratos_covid19_SI.csv"), 
@@ -24,8 +26,8 @@ contratos_SII <- read_csv(file = paste0(direccion_comp,
                          locale = locale(encoding = "UTF-8"))
 
 # Clasificador de bienes y servicios
-clasificador <- read_csv(file = paste0(direccion_comp, 
-                                       "clasificador_bienes_servicios.csv"),
+clasificador <- read_csv(file = 
+  paste0(direccion_comp, "clasificador_bienes_servicios.csv"),
   locale = locale(encoding = "UTF-8")) 
 
 # Coordenadas
@@ -132,7 +134,7 @@ contratos_SI <- contratos_SI %>% mutate(
 ### 3.1.1.4. Fecha de firma
 contratos_SI <- contratos_SI %>% 
   mutate(fecha_de_firma_del_contrato = 
-           mdy(fecha_de_firma_del_contrato))
+           ymd(fecha_de_firma_del_contrato))
 
 ### 3.1.1.5. Estandarizacion adiciones
 contratos_SI <- contratos_SI %>% 
@@ -143,7 +145,15 @@ contratos_SI <- contratos_SI %>%
 contratos_SI$tiempo_adiciones_en_dias <- NULL
 contratos_SI$tiempo_adiciones_en_meses <- NULL
 
-### 3.1.1.6. Asignacion de nombres
+### 3.1.1.6. Estandarización de la categoría regimen especial
+contratos_SI <- contratos_SI %>% 
+  mutate(regimen_de_contratacion = case_when(
+    str_detect(string = regimen_de_contratacion, 
+               pattern = "Régimen Especial", negate = T)~ "Estatuto General de Contratación",
+    TRUE~ "Régimen Especial"
+  ))
+
+### 3.1.1.7. Asignacion de nombres
 contratos_SI <- contratos_SI %>% 
   rename(
     uid = uid, nivel_entidad = nivel_entidad, orden_entidad = orden_entidad,
@@ -170,7 +180,7 @@ contratos_SI <- contratos_SI %>%
     adiciones_dias = adiciones_dias
   )
 
-### 3.1.1.7. Asignación de nuevas variables 
+### 3.1.1.8. Asignación de nuevas variables 
 contratos_SI$fecha_adjudicacion <- contratos_SI$fecha_firma
 contratos_SI$proveedores_inv <- 0
 contratos_SI$proveedores_inv_personal <- 0
@@ -365,7 +375,7 @@ contratos <- rbind(contratos_SI, contratos_SII)
 # 4. Preprocesamiento ----
 
 ## Eliminación de repetidos
-contratos <- contratos %>% unique()
+contratos <- contratos %>% distinct()
 
 ## 4.1. Filtro del rango del tiempo de pandemia ----
 contratos <- contratos %>%
@@ -521,7 +531,6 @@ contratos <- contratos %>%
                     split = "/" )[[1]][1])
 
 ### Departamento
-### table(contratos$departamento_entidad)
 contratos <- contratos %>% 
   mutate(departamento_municipio = 
            paste(departamento_entidad,
@@ -531,7 +540,8 @@ contratos <- contratos %>%
 ### Transformar todos los caracteres en minuscula y quitar tíldes
 contratos$departamento_municipio <- str_to_lower(
   string = contratos$departamento_municipio)
-contratos$departamento_municipio <- base::chartr(
+
+contratos$departamento_municipio <- chartr(
   'áéíóúñü','aeiounu',
   contratos$departamento_municipio)
 
@@ -543,8 +553,7 @@ municipios_general <- contratos %>%
   distinct()
 
 ## Algoritmo de emparejamiento
-for(i in 1: nrow(municipios_general))
-{   
+for(i in 1: nrow(municipios_general)){   
   # metodo estadistico
   valor_z <- stringdist(as.character(
     municipios_general[i, "departamento_municipio"]), 
@@ -557,20 +566,20 @@ for(i in 1: nrow(municipios_general))
   # Emparejar valores de codigo dto y mun según el grado de similitud
   if(valor_z[posicion] < 0.15){
     
-    municipios_general[i, "valor_emparejamiento"] <- valor_z[posicion]
-    municipios_general[i, "municipio_coordenadas"] <-
-      coordenadas[posicion, "departamento_municipio"]
-    municipios_general[i, "codigo_municipio"] <-
-      as.character(coordenadas[posicion, "codigo_dpto_mpio"])
-    municipios_general[i, "codigo_departamento"] <- 
-      as.character(coordenadas[posicion, "codigo_departamento"])
+      municipios_general[i, "valor_emparejamiento"] <- valor_z[posicion]
+      municipios_general[i, "municipio_coordenadas"] <-
+        coordenadas[posicion, "departamento_municipio"]
+      municipios_general[i, "codigo_municipio"] <-
+        as.character(coordenadas[posicion, "codigo_dpto_mpio"])
+      municipios_general[i, "codigo_departamento"] <- 
+        as.character(coordenadas[posicion, "codigo_departamento"])
   } 
   else
   {
-    municipios_general[i, "valor_emparejamiento"] <- 1
-    municipios_general[i, "municipio_coordenadas"] <- "ninguno"
-    municipios_general[i, "codigo_municipio"] <- "ninguno"
-    municipios_general[i, "codigo_departamento"] <- "ninguno"
+      municipios_general[i, "valor_emparejamiento"] <- 1
+      municipios_general[i, "municipio_coordenadas"] <- "ninguno"
+      municipios_general[i, "codigo_municipio"] <- "ninguno"
+      municipios_general[i, "codigo_departamento"] <- "ninguno"
   }
 }
 
@@ -883,7 +892,7 @@ names(nombres_dep) <- nombres
 # Unión del los nombres del conjunto de datos
 contratos <- nombres_dep %>% 
   select(codigo_dep, codigo_munp,
-         departamento, municipio) %>% unique() %>% 
+         departamento, municipio) %>% distinct() %>% 
   rename(municipio_entidad = municipio,
          departamento_entidad = departamento,
          codigo_departamento = codigo_dep,
@@ -961,8 +970,15 @@ contratos[contratos$codigo_municipio_ent == "88001", "categoria_munp_ent"] <- 5
 # 4.11 Ajustes en los nombres de los contratistas ----
 # Limpieza
 # Caracteres a limpiar
-car_limpieza <- c("\\¿", "<U+0096>", "<u+0096>","\\(",": ", "<u+0093>", 
+car_limpieza_c <- c("<U+0096>", "<u+0096>","\\(",": ", "<u+0093>", 
                   "<U+0093>", "<u+0094>","<U+0094>", "/\\)\\(", "\\(")
+
+car_limpieza = "\\¿"
+
+for (i in car_limpieza_c){
+  car_limpieza = paste(car_limpieza, i, sep = "|")
+}
+  
 # Limpieza de caracteres en el atributo
 contratos <- contratos %>% 
   mutate(nom_contratista = str_remove_all(string = nom_contratista,
@@ -986,6 +1002,11 @@ contratos <- contratos %>%
   mutate(nom_contratista = str_replace_all(nom_contratista, 
                                       pattern = "S.A", replacement = "SA"))
 
+
+contratos <- contratos |> 
+  mutate(nom_contratista = if_else(nom_contratista |> is.na(), 
+                                   "No definido", nom_contratista))
+
 # Extraccion del atributo
 contratistas <- contratos %>% 
   select(id_contratista, nom_contratista) %>% unique()
@@ -993,11 +1014,11 @@ contratistas <- contratos %>%
 # Extracción de los que presentan anomalias
 # A. Varios nombres en el id
 dif_nom <- contratistas %>% group_by(id_contratista) %>%
-  summarize(n_dif = n_distinct(nom_contratista)) %>% filter(n_dif > 1)
+  summarize(n_dif = n_distinct(nom_contratista)) %>% filter(n_dif > 2)
 
 # B. Varios ID con un solo nombre
 dif_nit <- contratistas %>% group_by(nom_contratista) %>%
-  summarize(n_dif = n_distinct(id_contratista)) %>% filter(n_dif > 1)
+  summarize(n_dif = n_distinct(id_contratista)) %>% filter(n_dif > 2)
 
 # Busqueda y selección de los que presentan anomalias
 # Nota: Se tuvo que seleccionar solamente una representación (más frecuente)
@@ -1212,4 +1233,4 @@ contratos <- contratos %>% select(-all_of(c('uid', 'detalle_objeto',
 
 
 # 7. Reescribir la base de datos ----
-write_csv(x = contratos, path = paste0(direccion, "contratos_covid19_LV1.csv"))
+write_csv(x = contratos, file = paste0(direccion, "contratos_covid19_LV1.csv"))

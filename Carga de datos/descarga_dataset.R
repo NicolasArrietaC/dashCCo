@@ -4,7 +4,7 @@
 
 # 1. Librerias ----
 sapply(
-  c('RSocrata', 'tidyverse'), 
+  c('RSocrata', 'dplyr', 'readr'), 
   library, character.only = T
 )
 
@@ -14,10 +14,10 @@ extraccion_datos <- function(enlace, lim = 20000){
   # Credenciales
   correo <- "****"
   contrasenna <- "****"
+  
   # Ajuste del limite en la consulta para no descargar
   # conjuntos muy grandes
-  enlace <- paste0(enlace,
-                   "&$limit=", lim)
+  enlace <- paste0(enlace, "&$limit=", lim)
   
   # Ejecucion
   datos <- read.socrata(url = enlace,
@@ -77,15 +77,15 @@ enlace <- paste0(
   " OR UPPER(", col, ") like '%25COVID%25')")
 
 # 3.2. Llamar a la funcion ----
-contratos_SI <- extraccion_datos(enlace = enlace, lim = 60000)
+contratos_SI <- extraccion_datos(enlace = enlace, lim = 65000)
 
 # 3.3. Escritura del conjunto de datos ----
-direccion_comp <- paste0('/dashCCo/Datasets_complementos/')
+direccion_comp <- paste0('Datasets_complementos/')
 
-contratos_SI <- contratos_SI %>% unique()
+contratos_SI <- contratos_SI |> distinct()
 
 write_csv(x = contratos_SI, 
-          path = paste0(direccion_comp, "contratos_covid19_SI.csv"))
+          file = paste0(direccion_comp, "contratos_covid19_SI.csv"))
 
 # 4. Conjunto de datos SECOP II: Procesos ----
 col <- "descripci_n_del_procedimiento"
@@ -127,7 +127,7 @@ enlace <- paste0(
 contratos_SII <- extraccion_datos(enlace = enlace, lim = 15000)
 
 # 4.3. Escritura del conjunto de datos ----
-contratos_SII <- contratos_SII %>% unique()
+contratos_SII <- contratos_SII |> distinct()
 
 write_csv(x = contratos_SII, 
-          path = paste0(direccion_comp, "contratos_covid19_SII.csv"))
+          file = paste0(direccion_comp, "contratos_covid19_SII.csv"))

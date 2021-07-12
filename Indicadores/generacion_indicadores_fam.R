@@ -3,11 +3,51 @@
 # Fecha de elaboracion: 29/10/2020
 
 # 1. Librerias ----
-library(tidyverse)
+sapply(
+  c('dplyr', 'readr', 'lubridate', 'stringr', 'tidyr'), 
+  library, character.only = T
+)
 
 # 2. Carga de conjunto de datos ----
 contratos <- read_csv(file = "Datasets/contratos_covid19_LV1.csv", 
-                      locale = locale(encoding = "UTF-8"))
+                      locale = locale(encoding = "UTF-8"),
+                      col_types = cols(
+                        nom_contratista = col_character(),
+                        codigo_municipio_ent = col_character(),
+                        codigo_departamento_ent = col_character(),
+                        departamento_entidad = col_character(),
+                        municipio_entidad = col_character(),
+                        nivel_entidad = col_character(),
+                        orden_entidad = col_character(),
+                        nombre_entidad = col_character(),
+                        nit_entidad = col_character(),
+                        tipo_proceso = col_character(),
+                        estado_proceso = col_character(),
+                        regimen_contratacion = col_character(),
+                        objeto_contratar = col_character(),
+                        tipo_contrato = col_character(),
+                        municipio_ejecucion = col_character(),
+                        valor_estimado = col_double(),
+                        nombre_grupo = col_character(),
+                        nombre_familia = col_character(),
+                        nombre_clase = col_character(),
+                        tipo_id_contratista = col_character(),
+                        id_contratista = col_character(),
+                        departamento_contratista = col_character(),
+                        fecha_firma = col_date(format = ""),
+                        valor_inicial = col_double(),
+                        valor_adiciones = col_double(),
+                        valor_total = col_double(),
+                        ruta_web = col_character(),
+                        adiciones_dias = col_double(),
+                        proveedores_inv = col_double(),
+                        proveedores_inv_personal = col_double(),
+                        proveedores_unicos = col_double(),
+                        fuente = col_character(),
+                        latitud = col_double(),
+                        longitud = col_double(),
+                        categoria_munp_ent = col_character()
+))
 
 # 3. Filtros ----
 # Quitar contratos de prestación de servicios por valor total
@@ -50,7 +90,7 @@ temp <- contratos %>%
   group_by(nombre_familia) %>% 
   summarise(oferentes_prom = sum(proveedores_inv, na.rm = T) / n()) %>%
   mutate(promedio_max = max(oferentes_prom)) %>% 
-  mutate(ind_prom_oferentes = (1 - (oferentes_prom / promedio_max)) * 100) %>%
+  mutate(ind_prom_oferentes = (1 - oferentes_prom / promedio_max) * 100) %>%
   select(nombre_familia, oferentes_prom, ind_prom_oferentes)
 
 ## Unir con la tabla de indicadores
@@ -66,9 +106,9 @@ rm(temp) ## Remover temp
 temp <- contratos %>% 
   group_by(nombre_familia) %>% 
   summarise(perc_contr_cerrada_num = 
-              sum((tipo_proceso == "Contratación Directa" | 
-                     tipo_proceso == "Régimen Especial") / n(),
-                  na.rm = T) * 100)
+              sum((tipo_proceso == "Contratación directa" | 
+                     tipo_proceso == "Régimen especial"),
+                  na.rm = T) / n() * 100)
 
 # Agrupar los indicadores en una sola tabla
 indicadoresF <- indicadoresF %>% 
@@ -84,8 +124,8 @@ rm(temp) ## Remover temp
 # de los contratos
 temp <- contratos %>% 
   group_by(nombre_familia) %>% 
-  filter(tipo_proceso == "Contratación Directa" |
-           tipo_proceso == "Régimen Especial") %>%
+  filter(tipo_proceso == "Contratación directa" | 
+         tipo_proceso == "Régimen especial") %>%
   summarise(valor_cerrada = sum(valor_total, na.rm = T))
 
 temp1 <- contratos %>% 
@@ -114,16 +154,15 @@ temp <- contratos %>%
   group_by(nombre_familia, id_contratista) %>% 
   summarise(cant_contratos = n(),
             val_contratos = sum(valor_total, na.rm = T)) %>% 
-  group_by(nombre_familia) %>% 
+  ungroup(id_contratista) %>% 
   mutate(total_contratos_ent = sum(cant_contratos, na.rm = T),
          total_val_contratos_ent = sum(val_contratos, na.rm = T),
          si_cant = (cant_contratos / total_contratos_ent) * 100,
          si2_cant = si_cant ^ 2,
          si_val = (val_contratos / total_val_contratos_ent) * 100,
-         si2_val = si_val ^ 2) %>% 
-  group_by(nombre_familia) %>% 
-  summarise(HHI_cant = (sum(si2_cant, na.rm = T) / 10000) * 100,
-            HHI_val = (sum(si2_val, na.rm = T) / 10000) * 100)
+         si2_val = si_val ^ 2) %>%
+  summarise(HHI_cant = sum(si2_cant, na.rm = T) / 100,
+            HHI_val = sum(si2_val, na.rm = T) / 100)
 
 # Agrupar los indicadores en una sola tabla
 indicadoresF <- indicadoresF %>% 
@@ -135,7 +174,8 @@ rm(temp) ## Remover temp
 #El Índice no se puede aplicar a entidades con 1 solo contrato
 familias_del <- contratos %>% 
   group_by(nombre_familia) %>% 
-  summarise(contratos = n()) %>% 
+  summarise(contratos = n(),
+            contratistas = n_distinct(id_contratista)) %>% 
   filter(contratos < 2)
 
 # Quitar las entidades con menos de 2 contratos
@@ -148,7 +188,7 @@ temp <- contratos1 %>%
             nj_val = sum(valor_total, na.rm = T),
             sub_cant = nj_cant * (nj_cant - 1),
             sub_val = nj_val * (nj_val - 1), na.rm = T) %>% 
-  group_by(nombre_familia) %>% 
+  ungroup(id_contratista) %>%  
   summarise(N_cant = sum(nj_cant, na.rm = T),
             N_val = sum(nj_val, na.rm = T),
             ID_cant = (sum(sub_cant, na.rm = T) / 
@@ -186,8 +226,7 @@ temp <- contratos %>%
   group_by(nombre_familia) %>% 
   summarise(n_contratistas_dif = n_distinct(id_contratista),
             n_contratos = n(),
-            ganadoras = (n_contratistas_dif / n_contratos) * 100) %>% 
-  mutate(ganadoras = 100 - ganadoras) %>% 
+            ganadoras = (1 - n_contratistas_dif / n_contratos) * 100) %>%  
   select(nombre_familia, ganadoras)  
 
 # Agrupar los indicadores en una sola tabla
@@ -203,10 +242,10 @@ rm(temp) ## Remover temp
 temp <- contratos1 %>% 
   group_by(nombre_familia, id_contratista) %>% 
   summarise(nj = n()) %>% 
-  group_by(nombre_familia) %>% 
+  ungroup(id_contratista) %>% 
   mutate(Ni = sum(nj, na.rm = T),
-         Pi = nj / Ni) %>% 
-  slice_max(n = 4, order_by = nj) %>% 
+         Pi = nj / Ni) %>%
+  slice_max(order_by = Pi, n = 4, with_ties = F) %>% 
   summarise(IC4K_cant = sum(Pi, na.rm = T) * 100)
 
 # Agrupar los indicadores en una sola tabla
@@ -224,7 +263,7 @@ temp <- contratos1 %>%
   group_by(nombre_familia) %>% 
   mutate(Ni = sum(nj, na.rm = T),
          Pi = nj / Ni) %>% 
-  slice_max(n = 4, order_by = nj) %>% 
+  slice_max(order_by = Pi, n = 4, with_ties = F) %>%   
   summarise(IC4K_val = sum(Pi, na.rm = T) * 100)
 
 # Agrupar los indicadores en una sola tabla
@@ -322,13 +361,13 @@ ind <- c("ind_prom_oferentes", "perc_contr_cerrada_num",
 
 #Pasar las columnas de indicadores a filas
 indicadoresF <- indicadoresF %>%  
-  pivot_longer(cols = ind, names_to = "indicador", values_to = "valor")
+  pivot_longer(cols = all_of(ind), names_to = "indicador", values_to = "valor")
 
 #Eliminar los NA
 indicadoresF <- indicadoresF %>%  filter(!is.na(valor))
 
 # 6. Escritura de datos ----
 ## Indicadores General
-write_csv(x = indicadoresF, path = "Datasets/IRC_indicadoresF.csv")
+write_csv(x = indicadoresF, file = "Datasets/IRC_indicadoresF.csv")
 ## Indicadores por Municipio
-write_csv(x = indicadoresG, path = "Datasets/IRC_indicadoresG.csv")
+write_csv(x = indicadoresG, file = "Datasets/IRC_indicadoresG.csv")

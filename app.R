@@ -3,7 +3,9 @@
 # Fecha elaboracion: 15/07/2020
 
 # 1. Librerias ----
-library(tidyverse)
+library(dplyr)
+library(readr)
+library(stringr)
 library(lubridate)
 library(shiny)
 library(shinydashboard)
@@ -13,7 +15,7 @@ library(leaflet)
 library(DT)
 library(colorspace)
 library(sp)
-library(colmaps)
+library(sf)
 library(ggiraph)
 library(packcircles)
 library(viridisLite)
@@ -41,6 +43,12 @@ indicadoresF <- read_csv(file = "Datasets/IRC_indicadoresF.csv",
 indicadoresE <- read_csv(file = "Datasets/IRC_indicadoresE.csv", 
                          locale = locale(encoding = "UTF-8"))
 
+# Conjunto de datos poligonos para municipios
+load(file = "Datasets/municipios.rda")
+
+
+load(file = "Datasets/departamentos.rda")
+
 # 3. Funciones ----
 # 3.1. Descriptivas ----  
 ## * Grafica resumen
@@ -63,7 +71,7 @@ grafica_serie_tiempo <- function(data, cantidad = T, acumulado = F,
   
   if (escala == 'semana') {
     stat_contr <- stat_contr %>% 
-      mutate(semana = week(fecha_firma)) %>% 
+      mutate(semana = paste0(year(fecha_firma), week(fecha_firma))) %>% 
       group_by(semana) %>% 
       mutate(fecha_sem_max = max(fecha_firma),
              fecha_firma = min(fecha_firma)) %>% 
@@ -114,7 +122,7 @@ grafica_serie_tiempo <- function(data, cantidad = T, acumulado = F,
              cuantia_acumulada = cumsum(cuantia_dia))
   }
   
-  if  (escala == 'dia') {
+  if (escala == 'dia') {
     stat_contr <- stat_contr %>%
       mutate(mes_lb = label_mes(month(fecha_firma)),
              fecha_lbl = paste0("Día: ", mes_lb, " ", day(fecha_firma),
@@ -246,9 +254,7 @@ grafica_serie_tiempo <- function(data, cantidad = T, acumulado = F,
              range = c(as.character(min(stat_contr$fecha_firma)), 
                        as.character(max(stat_contr$fecha_firma))),
              type = "date",
-             tickfont = f_legend,
-             rangebreaks = list( 
-               list(bounds = c("sat", "mon")))),
+             tickfont = f_legend),
            
            yaxis = list(
              title = list(text = y_titulo,
@@ -3554,7 +3560,7 @@ ui <- dashboardPage(
 )
 
 # 6. Creacion del server (Backend) ----
-server <- function(input, output) {
+server <- function(input, output, session) {
   ## 6.1. Seccion general ----  
   # Contador de contratos
   # Cantidad
